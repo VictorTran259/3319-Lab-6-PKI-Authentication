@@ -1,1 +1,72 @@
-# CIS-3319-Lab-6-PKI-Authentication
+# CIS 3319 Lab 6 - PKI Authentication
+
+## Libraries Used
+1. socket
+2. time
+3. from Crypto.PublicKey, RSA
+4. from Crypto.Signature, pkcs1_15
+5. from Crypto.Hash, SHA256
+6. from Crypto.Random, get_random_bytes
+7. from Crypto.Cipher, PKCS1_OAEP
+8. from cryptography.hazmat.primitives, serialization
+9. from cryptography.hazmat.backends, default_backend
+
+
+## Project Files
+
+**server_ca.py** - The CA server, running on a predefined IP address and port, listens for connections from the application server. The CA's primary function is encapsulated in the
+step_1_and_2_ca function. In the first step, the CA receives an encrypted message (ciphertext_step_1) from the application server. This message contains essential information,
+including a temporary key (key_tmp1), the server's identifier (id_s), and a timestamp (timestamp_1). The CA decrypts this message using its private key through the RSA PKCS1_OAEP
+scheme and validates the timestamp's authenticity, ensuring it falls within an acceptable time frame. The second step involves the CA generating a new RSA key pair (key_pair_s)
+specifically for the application server. It exports the public and private keys, creating a certificate (certificate_s) for the server by signing a message containing the server's
+ID, the CA's ID, and the server's public key. Subsequently, a new message (message_step_2) is crafted, incorporating the server's public and private keys, its certificate, ID, and
+a fresh timestamp (timestamp_2). This message is encrypted using the temporary DES key (Ktmp1), and the resulting ciphertext (ciphertext_step_2) is sent back to the application
+server. Throughout this process, detailed information about the steps, including the public key, private key, and certificate of the server, is printed for verification purposes.
+The CA's role is pivotal in facilitating secure key exchange and ensuring the integrity of the communication channels between entities. After completing its tasks, the CA server
+closes the sockets, concluding its role in establishing secure communication.
+
+**server_s.py** - The initial interaction starts with Step (3), where the server receives an encrypted message from the client containing the client's identifier (ID_C) and a timestamp
+(TS3). The server validates the timestamp, ensuring its freshness. Moving on to Step (4), the server constructs a message containing its public key, a certificate, and a timestamp
+(TS4). This message is encrypted and sent to the client. The certificate provides the client with assurance regarding the server's authenticity and public key. In Step (5), the
+server receives an encrypted message from the client, containing a temporary key (Ktmp2), the client's identifier (ID_C), IP address (IP_C), port number (PORT_C), and a timestamp
+(TS5). After decrypting this message using the server's private key, the server obtains the necessary information, validating the freshness of the timestamp. Proceeding to Step (6),
+the server generates a session DES key (Ksess) and constructs a message with this key, the desired session lifetime (LIFETIME_SESS), the client's identifier (ID_C), and a timestamp
+(TS6). The message is then encrypted using the temporary DES key (Ktmp2) and sent to the client. This step establishes the foundation for a secure session between the server and
+client. Upon receiving an encrypted message in Step (7), the server decrypts it using the session key (Ksess). The decrypted message contains a client request (REQ) and a timestamp
+(TS7). The server validates the timestamp and processes the client's request securely. Finally, in Step (8), the server generates a message containing data (DATA) and a timestamp
+(TS8). This message is encrypted using the session DES key (Ksess) and sent to the client, completing the secure communication process. Throughout these steps, the server ensures
+the integrity, authenticity, and confidentiality of the communication, following best practices in secure communication protocols.
+
+**client.py** - Upon initiating a connection with the server, the client begins by executing Step (3). In this step, the client generates a message containing its identifier (ID_S) and
+a timestamp (TS3). The message is then encrypted and sent to the server, marking the initial phase of the secure communication protocol. Moving to Step (4), the client receives an
+encrypted message from the server, which includes the server's public key, a certificate, and a timestamp (TS4). The client proceeds to validate the received certificate by
+reconstructing it using the server's public key and the CA's private key. This process ensures the authenticity of the server's credentials. Following successful certificate
+validation, the client proceeds to Step (5), where it generates a temporary DES key (Ktmp2) and constructs a message containing this key, the client's identifier (ID_C), its IP
+address, port number, and a timestamp (TS5). The message is encrypted with the server's public key and transmitted to the server. This step establishes a foundation for subsequent
+secure communication, as it involves the exchange of keys crucial for encryption and decryption processes. Upon receiving an encrypted message in Step (6), the client decrypts it
+using the temporary DES key (Ktmp2). The decrypted message contains the session key (Ksess), the desired lifetime of the session (Lifetime_sess), the server's identifier (ID_C), and
+a timestamp (TS6). This information is crucial for establishing a secure session with the server. In Step (7), the client creates a message containing a request (REQ), timestamp
+(TS7), and encrypts it using the session key (Ksess). The encrypted message is sent to the server, allowing the client to interact securely with the server, making requests and
+receiving responses. Finally, in Step (8), the client receives an encrypted message containing data (DATA) and a timestamp (TS8). Using the session key (Ksess), the client decrypts
+the message, retrieves the data, and ensures the validity of the timestamp. This step completes the secure communication process, demonstrating the client's role in establishing and
+maintaining a secure session with the server.
+
+**des.py** - An implementation of DES using pycryptodome.
+
+**lifetimesess=10.JPG** - testing results for lifetimesess=10 like the name of the file suggests.
+
+**lifetimesess=60.JPG** - testing results for lifetimesess=60 like the name of the file suggests.
+
+**lifetimesess=100.JPG** - testing results for lifetimesess=100 like the name of the file suggests.
+
+**programdesign.txt** - The file you're looking at right now and the documentation for my project.
+
+
+## How to test project
+1. Open up three terminals
+2. Run server.ca.py first on one terminal, run server_s.py next on another terminal, and then run client.py last on the last terminal. The order that you run the programs matters.
+   You need to run each program in the exact order I just stated or this project won't work.
+3. After you run everything, you should see the output. The servers and clients close by themselves after all operations are performed so you don't need to worry about closing them.
+
+Note: If you want to test my project using different numbers for lifetimesess, you can change them yourself just by changing the values of the lifetime variables in the hardcoded
+values section of client.py, server_ca.py, and server_s.py and also max_time_difference in the is_valid_timestamp function.
